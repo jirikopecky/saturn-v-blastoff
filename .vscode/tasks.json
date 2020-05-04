@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+	"type": "shell",
+	"echoCommand": true,
+	"tasks": [
+        {
+            "label": "Build blastoff-animation",
+            "command": "go build",
+            "options": {
+                "cwd": "${workspaceFolder}/blastoff-animation"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$go"
+            ]
+        }
+    ]
+}

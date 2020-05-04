@@ -8,7 +8,6 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
-	animation "github.com/jirikopecky/saturn-v-blastoff/blastoff-animation/engine"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,7 +24,7 @@ const dbusIntrospect = `
 	</interface>` + introspect.IntrospectDataString + `</node> `
 
 type animationApp struct {
-	engine *animation.AnimationEngine
+	engine *AnimationEngine
 	mux    *sync.Mutex
 }
 
@@ -42,7 +41,7 @@ func (app *animationApp) Start() *dbus.Error {
 		return nil
 	}
 
-	engine, err := animation.InitAnimationEngine(brightness, ledCounts)
+	engine, err := InitAnimationEngine(brightness, ledCounts)
 	if err != nil {
 		log.WithError(err).Error("Cannot initialize LED stripe driver!")
 		return dbus.MakeFailedError(err)

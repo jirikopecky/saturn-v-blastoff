@@ -1,5 +1,4 @@
-// Package engine implements the animation of fire for LEGO Saturn V rocket stand.
-package engine
+package main
 
 import (
 	"fmt"
@@ -120,7 +119,7 @@ func (engine *AnimationEngine) StartAnimation() error {
 		default:
 			err := engine.doAnimationStep(colors[colorIndex%len(colors)])
 			if err != nil {
-				return err
+				log.WithError(err).Panic("Animation step failed")
 			}
 
 			colorIndex++
