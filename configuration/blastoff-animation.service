@@ -1,0 +1,10 @@
+# should be placed in /etc/systemd/system/blastoff-animation.service
+
+[Unit]
+Description=Saturn V Blast-off animation
+
+[Service]
+Type=simple
+User=root
+# TODO: fix path to the executable
+ExecStart=/home/pi/projects/saturn-v-blastoff/blastoff-animation/blastoff-animation
