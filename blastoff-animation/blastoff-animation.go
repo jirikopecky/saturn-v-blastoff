@@ -16,16 +16,29 @@ const (
 	ledCounts  = 60
 )
 
+const (
+	dbusObjectPath    dbus.ObjectPath = "/com/github/jirikopecky/SaturnV"
+	dbusInterfaceName string          = "com.github.jirikopecky.SaturnV.BlastOff"
+	dbusServiceName   string          = "com.github.jirikopecky.SaturnV"
+)
+
 const dbusIntrospect = `
 <node>
-	<interface name="com.github.jirikopecky.SaturnV.BlastOff">
+	<interface name="` + dbusInterfaceName + `">
 		<method name="Start" />
 		<method name="Stop" />
+		<method name="IsStarted">
+			<arg name="isStarted" direction="out" type="b" />
+		</method>
+		<signal name="StateChanged">
+			<arg name="isStarted" direction="out" type="b" />
+		</signal>
 	</interface>` + introspect.IntrospectDataString + `</node> `
 
 type animationApp struct {
 	engine *AnimationEngine
 	mux    *sync.Mutex
+	dbus   *dbus.Conn
 }
 
 func init() {
@@ -56,6 +69,10 @@ func (app *animationApp) Start() *dbus.Error {
 	go engine.StartAnimation()
 
 	app.engine = engine
+
+	// emit DBus signal about the change
+	app.dbus.Emit(dbusObjectPath, dbusInterfaceName+".StateChanged", true)
+
 	return nil
 }
 
@@ -75,7 +92,18 @@ func (app *animationApp) Stop() *dbus.Error {
 	}
 
 	app.engine = nil
+
+	// emit DBus signal about the change
+	app.dbus.Emit(dbusObjectPath, dbusInterfaceName+".StateChanged", true)
+
 	return nil
+}
+
+func (app *animationApp) IsStarted() (bool, *dbus.Error) {
+	app.mux.Lock()
+	defer app.mux.Unlock()
+
+	return (app.engine != nil), nil
 }
 
 func handleTermination(done chan bool) {
@@ -90,27 +118,44 @@ func handleTermination(done chan bool) {
 	done <- true
 }
 
-func main() {
-	app := &animationApp{
-		engine: nil,
-		mux:    &sync.Mutex{},
+func privateSystemBus() (conn *dbus.Conn, err error) {
+	conn, err = dbus.SystemBusPrivate()
+	if err != nil {
+		return nil, err
 	}
-	defer app.Stop()
+	if err = conn.Auth(nil); err != nil {
+		conn.Close()
+		return nil, err
+	}
+	if err = conn.Hello(); err != nil {
+		conn.Close()
+		return nil, err
+	}
+	return conn, nil // success
+}
 
-	conn, err := dbus.SystemBus()
+func main() {
+	conn, err := privateSystemBus()
 	if err != nil {
 		log.WithError(err).Panic("Cannot connect to DBus System bus")
 	}
 	defer conn.Close()
 
+	app := &animationApp{
+		engine: nil,
+		mux:    &sync.Mutex{},
+		dbus:   conn,
+	}
+	defer app.Stop()
+
 	done := make(chan bool, 1)
 	go handleTermination(done)
 
-	conn.Export(app, "/com/github/jirikopecky/SaturnV", "com.github.jirikopecky.SaturnV.BlastOff")
+	conn.Export(app, dbusObjectPath, dbusInterfaceName)
 	conn.Export(introspect.Introspectable(dbusIntrospect),
-		"/com/github/jirikopecky/SaturnV", "org.freedesktop.DBus.Introspectable")
+		dbusObjectPath, "org.freedesktop.DBus.Introspectable")
 
-	reply, err := conn.RequestName("com.github.jirikopecky.SaturnV", dbus.NameFlagDoNotQueue)
+	reply, err := conn.RequestName(dbusServiceName, dbus.NameFlagDoNotQueue)
 	if err != nil {
 		log.WithError(err).Panic("Failed to call DBus RequestName method")
 	}
