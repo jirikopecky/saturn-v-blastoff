@@ -4,7 +4,8 @@
 Description=Saturn V Blast-off animation
 
 [Service]
-Type=simple
+Type=dbus
+BusName=com.github.jirikopecky.SaturnV
 User=root
 # TODO: fix path to the executable
 ExecStart=/home/pi/projects/saturn-v-blastoff/blastoff-animation/blastoff-animation

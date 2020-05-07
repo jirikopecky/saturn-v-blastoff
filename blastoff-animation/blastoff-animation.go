@@ -106,7 +106,7 @@ func (app *animationApp) IsStarted() (bool, *dbus.Error) {
 	return (app.engine != nil), nil
 }
 
-func handleTermination(done chan bool) {
+func handleTermination(done chan<- bool) {
 	signals := make(chan os.Signal, 1)
 
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
