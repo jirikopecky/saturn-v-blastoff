@@ -94,7 +94,7 @@ func (engine *AnimationEngine) doAnimationStep(color uint32) error {
 	engine.mux.Lock()
 	defer engine.mux.Unlock()
 
-	log.WithField("color", fmt.Sprintf("%06X", color)).Trace("Doing animation step")
+	log.WithField("color", fmt.Sprintf("%08X", color)).Trace("Doing animation step")
 
 	for i := 0; i < len(engine.ws.Leds(0)); i++ {
 		engine.ws.Leds(0)[i] = color

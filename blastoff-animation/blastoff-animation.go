@@ -8,6 +8,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
+	"github.com/jirikopecky/saturn-v-blastoff/dbusutils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -16,15 +17,9 @@ const (
 	ledCounts  = 60
 )
 
-const (
-	dbusObjectPath    dbus.ObjectPath = "/com/github/jirikopecky/SaturnV"
-	dbusInterfaceName string          = "com.github.jirikopecky.SaturnV.BlastOff"
-	dbusServiceName   string          = "com.github.jirikopecky.SaturnV"
-)
-
 const dbusIntrospect = `
 <node>
-	<interface name="` + dbusInterfaceName + `">
+	<interface name="` + dbusutils.BlastOffDbusInterfaceName + `">
 		<method name="Start" />
 		<method name="Stop" />
 		<method name="IsStarted">
@@ -71,7 +66,7 @@ func (app *animationApp) Start() *dbus.Error {
 	app.engine = engine
 
 	// emit DBus signal about the change
-	app.dbus.Emit(dbusObjectPath, dbusInterfaceName+".StateChanged", true)
+	app.dbus.Emit(dbusutils.BlastOffDbusObjectPath, dbusutils.BlastOffDbusInterfaceName+".StateChanged", true)
 
 	return nil
 }
@@ -94,7 +89,7 @@ func (app *animationApp) Stop() *dbus.Error {
 	app.engine = nil
 
 	// emit DBus signal about the change
-	app.dbus.Emit(dbusObjectPath, dbusInterfaceName+".StateChanged", true)
+	app.dbus.Emit(dbusutils.BlastOffDbusObjectPath, dbusutils.BlastOffDbusInterfaceName+".StateChanged", true)
 
 	return nil
 }
@@ -118,24 +113,8 @@ func handleTermination(done chan<- bool) {
 	done <- true
 }
 
-func privateSystemBus() (conn *dbus.Conn, err error) {
-	conn, err = dbus.SystemBusPrivate()
-	if err != nil {
-		return nil, err
-	}
-	if err = conn.Auth(nil); err != nil {
-		conn.Close()
-		return nil, err
-	}
-	if err = conn.Hello(); err != nil {
-		conn.Close()
-		return nil, err
-	}
-	return conn, nil // success
-}
-
 func main() {
-	conn, err := privateSystemBus()
+	conn, err := dbusutils.ConnectPrivateSystemBus()
 	if err != nil {
 		log.WithError(err).Panic("Cannot connect to DBus System bus")
 	}
@@ -151,11 +130,10 @@ func main() {
 	done := make(chan bool, 1)
 	go handleTermination(done)
 
-	conn.Export(app, dbusObjectPath, dbusInterfaceName)
-	conn.Export(introspect.Introspectable(dbusIntrospect),
-		dbusObjectPath, "org.freedesktop.DBus.Introspectable")
+	conn.Export(app, dbusutils.BlastOffDbusObjectPath, dbusutils.BlastOffDbusInterfaceName)
+	conn.Export(introspect.Introspectable(dbusIntrospect), dbusutils.BlastOffDbusObjectPath, dbusutils.IntrospectableInterfaceName)
 
-	reply, err := conn.RequestName(dbusServiceName, dbus.NameFlagDoNotQueue)
+	reply, err := conn.RequestName(dbusutils.BlastOffDbusServiceName, dbus.NameFlagDoNotQueue)
 	if err != nil {
 		log.WithError(err).Panic("Failed to call DBus RequestName method")
 	}

@@ -2,8 +2,11 @@
     "go.useLanguageServer": true,
     "files.trimTrailingWhitespace": true,
     "cSpell.words": [
+        "Jiri",
+        "Kopecky",
         "Leds",
         "dbus",
+        "dbusutils",
         "jirikopecky",
         "systemd"
     ],
