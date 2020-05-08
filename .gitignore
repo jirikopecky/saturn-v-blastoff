@@ -16,3 +16,8 @@
 
 # binaries
 blastoff-animation/blastoff-animation
+blastoff-controller-homekit/blastoff-controller-homekit
+
+# HomeKit db
+blastoff-controller-homekit/db
+blastoff-controller-homekit/db/*
