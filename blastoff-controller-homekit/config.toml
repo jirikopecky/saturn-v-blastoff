@@ -1,0 +1,8 @@
+# pin is required and will be used when pairing with Apple clients
+pin="05042020"
+
+# path to database folder, must be writeable
+database="./db"
+
+# port number, empty means random port will be used
+#port=""

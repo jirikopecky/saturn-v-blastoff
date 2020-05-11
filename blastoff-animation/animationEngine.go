@@ -90,6 +90,7 @@ func (engine *AnimationEngine) CleanAndDestroy() error {
 	return nil
 }
 
+// TODO: implement actual animation
 func (engine *AnimationEngine) doAnimationStep(color uint32) error {
 	engine.mux.Lock()
 	defer engine.mux.Unlock()

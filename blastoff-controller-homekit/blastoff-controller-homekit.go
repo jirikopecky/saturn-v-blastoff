@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/brutella/hc"
 	"github.com/brutella/hc/accessory"
-	hcLog "github.com/brutella/hc/log"
 	"github.com/jirikopecky/saturn-v-blastoff/dbusutils"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func switchState(action string) {
@@ -13,7 +15,10 @@ func switchState(action string) {
 }
 
 func main() {
-	hcLog.Debug.Enable()
+	var configPath string
+	flag.StringVar(&configPath, "config", "./config.toml", "Path to configuration file")
+
+	flag.Parse()
 
 	conn, err := dbusutils.ConnectPrivateSystemBus()
 	if err != nil {
@@ -23,10 +28,15 @@ func main() {
 
 	blastOffClient := GetBlastOffClient(conn)
 
-	// TODO: take these from config
-	pin := "05042020"
-	port := ""
-	database := "./db"
+	viper.SetDefault("pin", "05042020")
+	viper.SetDefault("database", "./db")
+	viper.SetDefault("port", "")
+
+	viper.SetConfigType("toml")
+	viper.SetConfigFile(configPath)
+	if err = viper.ReadInConfig(); err != nil {
+		log.WithError(err).Panic("Cannot read config file")
+	}
 
 	info := accessory.Info{
 		Name:         "Saturn V",
@@ -68,9 +78,9 @@ func main() {
 	})
 
 	hcConfig := hc.Config{
-		Pin:         pin,
-		Port:        port,
-		StoragePath: database,
+		Pin:         viper.GetString("pin"),
+		Port:        viper.GetString("port"),
+		StoragePath: viper.GetString("database"),
 	}
 	t, err := hc.NewIPTransport(hcConfig, acc.Accessory)
 	if err != nil {

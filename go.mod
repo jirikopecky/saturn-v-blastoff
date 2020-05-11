@@ -7,4 +7,5 @@ require (
 	github.com/godbus/dbus/v5 v5.0.3
 	github.com/rpi-ws281x/rpi-ws281x-go v1.0.5
 	github.com/sirupsen/logrus v1.6.0
+	github.com/spf13/viper v1.7.0
 )

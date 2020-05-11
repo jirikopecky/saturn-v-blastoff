@@ -1,0 +1,15 @@
+# should be placed in /etc/systemd/system/
+
+[Unit]
+Description=Saturn V Blast-off HomeKit Controller
+After=network.target
+Requires=blastoff-animation.service
+
+[Service]
+Type=simple
+User=blastoff
+# TODO: fix path to the executable and config
+ExecStart=/home/pi/projects/saturn-v-blastoff/blastoff-controller-homekit/blastoff-controller-homekit -config /home/pi/projects/saturn-v-blastoff/configuration/config.toml
+
+[Install]
+WantedBy=multi-user.target
